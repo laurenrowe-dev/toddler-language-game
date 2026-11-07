@@ -56,9 +56,15 @@ const categoryNames = {
   everyday: "Everyday things",
   all: "Surprise me!"
 };
+const giftPalettes = [
+  { wrap: "#ff927b", ribbon: "#ffd077", outline: "#ed705e", bow: "#ff9a79" },
+  { wrap: "#75c9e8", ribbon: "#fff0a8", outline: "#3196b9", bow: "#a3e4f2" },
+  { wrap: "#a994ed", ribbon: "#ffd0a8", outline: "#7863c8", bow: "#c2b5f5" },
+  { wrap: "#91cf9a", ribbon: "#ffb8cb", outline: "#559e61", bow: "#b5e3a9" },
+  { wrap: "#ffc85f", ribbon: "#8fd7cd", outline: "#d99731", bow: "#ffe08c" }
+];
 const sessionSize = 10;
 const displayDuration = 9000;
-const repeatDelay = 5000;
 const elements = {
   welcome: document.querySelector(".welcome-screen"),
   start: document.querySelector(".start-button"),
@@ -73,7 +79,6 @@ const elements = {
   picture: document.querySelector(".object-picture"),
   word: document.querySelector(".word-label"),
   sound: document.querySelector(".sound-label-text"),
-  repeat: document.querySelector(".repeat-button"),
   finish: document.querySelector(".finish-screen"),
   again: document.querySelector(".again-button"),
   round: document.querySelector("#round-number"),
@@ -82,6 +87,7 @@ const elements = {
   soundToggle: document.querySelector(".sound-toggle"),
   soundIcon: document.querySelector(".sound-icon"),
   soundLabel: document.querySelector(".sound-toggle .sound-label"),
+  voiceSelect: document.querySelector(".voice-select"),
   helper: document.querySelector(".helper-text")
 };
 
@@ -91,20 +97,54 @@ let completedWords = 0;
 let soundEnabled = true;
 let selectedCategory = "all";
 let preferredVoice = null;
-let repeatTimer;
+let lastGiftPalette = -1;
 let nextTimer;
+let revealTimer;
+
+function setGiftPalette() {
+  let paletteIndex = Math.floor(Math.random() * giftPalettes.length);
+  if (giftPalettes.length > 1 && paletteIndex === lastGiftPalette) {
+    paletteIndex = (paletteIndex + 1 + Math.floor(Math.random() * (giftPalettes.length - 1))) % giftPalettes.length;
+  }
+  lastGiftPalette = paletteIndex;
+
+  const palette = giftPalettes[paletteIndex];
+  for (const [color, value] of Object.entries(palette)) {
+    elements.box.style.setProperty(`--gift-${color}`, value);
+  }
+}
+
+function cancelRevealAnimation() {
+  window.clearTimeout(revealTimer);
+  revealTimer = null;
+  elements.box.classList.remove("shaking");
+  elements.box.disabled = false;
+}
 
 function selectSpeechVoice() {
   if (!("speechSynthesis" in window)) return;
 
   const voices = window.speechSynthesis.getVoices();
-  const englishVoices = voices.filter((voice) => voice.lang.toLowerCase().startsWith("en"));
-  const feminineVoiceNames = /\b(aria|jenny|samantha|zoe|victoria|kendra|joanna|tessa|serena|ava|susan|zira)\b/i;
-  preferredVoice =
-    englishVoices.find((voice) => feminineVoiceNames.test(voice.name)) ??
-    englishVoices.find((voice) => voice.lang.toLowerCase() === "en-us") ??
-    englishVoices[0] ??
-    null;
+  const availableVoices = voices.filter((voice) =>
+    voice.lang.toLowerCase().startsWith("en") && /\b(zira|mark)\b/i.test(voice.name)
+  );
+  const selectedVoice = availableVoices.find((voice) => voice.voiceURI === preferredVoice?.voiceURI);
+  preferredVoice = selectedVoice ?? availableVoices[0] ?? null;
+
+  elements.voiceSelect.replaceChildren();
+  if (availableVoices.length === 0) {
+    elements.voiceSelect.add(new Option("Zira and Mark unavailable", ""));
+    elements.voiceSelect.disabled = true;
+    return;
+  }
+
+  availableVoices.forEach((voice) => {
+    const label = /\bzira\b/i.test(voice.name) ? "Female" : "Male";
+    const option = new Option(label, voice.voiceURI);
+    elements.voiceSelect.add(option);
+  });
+  elements.voiceSelect.disabled = false;
+  elements.voiceSelect.value = preferredVoice.voiceURI;
 }
 
 function shuffle(items) {
@@ -143,7 +183,7 @@ function updateProgress() {
 }
 
 function showBox() {
-  window.clearTimeout(repeatTimer);
+  cancelRevealAnimation();
   window.clearTimeout(nextTimer);
   if (currentWord) completedWords += 1;
   currentWord = null;
@@ -159,38 +199,44 @@ function showBox() {
   }
 
   elements.discovery.hidden = true;
+  setGiftPalette();
   elements.box.hidden = false;
-  elements.repeat.hidden = true;
+  elements.helper.textContent = "Listen, look, and say it together!";
   elements.helper.hidden = false;
   updateProgress();
 }
 
 function revealWord() {
-  if (elements.box.hidden || completedWords >= sessionSize) return;
+  if (elements.box.hidden || elements.box.disabled || completedWords >= sessionSize) return;
   currentWord = sessionWords[completedWords];
-  elements.box.hidden = true;
-  elements.discovery.hidden = false;
-  elements.picture.textContent = currentWord.picture;
-  elements.word.textContent = currentWord.word;
-  elements.sound.textContent = currentWord.sound;
-  elements.repeat.hidden = true;
-  elements.helper.hidden = true;
-  speakCurrentWord();
+  elements.box.disabled = true;
+  elements.box.classList.add("shaking");
 
-  repeatTimer = window.setTimeout(() => {
-    elements.repeat.hidden = false;
-  }, repeatDelay);
-  nextTimer = window.setTimeout(showBox, displayDuration);
+  revealTimer = window.setTimeout(() => {
+    cancelRevealAnimation();
+    elements.box.hidden = true;
+    elements.discovery.hidden = false;
+    elements.picture.textContent = currentWord.picture;
+    elements.word.textContent = currentWord.word;
+    elements.sound.textContent = currentWord.sound;
+    elements.discovery.setAttribute("aria-label", `Tap to hear ${currentWord.word} again`);
+    elements.helper.textContent = "Tap the picture area to hear it again!";
+    elements.helper.hidden = false;
+    speakCurrentWord();
+
+    nextTimer = window.setTimeout(showBox, displayDuration);
+  }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 600);
 }
 
 function showCategories() {
+  cancelRevealAnimation();
   elements.welcome.hidden = true;
   elements.gameSession.hidden = true;
   elements.categories.hidden = false;
 }
 
 function showWelcome() {
-  window.clearTimeout(repeatTimer);
+  cancelRevealAnimation();
   window.clearTimeout(nextTimer);
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   currentWord = null;
@@ -200,7 +246,7 @@ function showWelcome() {
 }
 
 function startSession(category) {
-  window.clearTimeout(repeatTimer);
+  cancelRevealAnimation();
   window.clearTimeout(nextTimer);
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   selectedCategory = category;
@@ -214,7 +260,9 @@ function startSession(category) {
   elements.selectedCategory.textContent = categoryNames[category];
   elements.finish.hidden = true;
   elements.discovery.hidden = true;
+  setGiftPalette();
   elements.box.hidden = false;
+  elements.helper.textContent = "Listen, look, and say it together!";
   elements.helper.hidden = false;
   updateProgress();
 }
@@ -226,9 +274,8 @@ elements.categoryButtons.forEach((button) => {
   button.addEventListener("click", () => startSession(button.dataset.category));
 });
 elements.box.addEventListener("click", revealWord);
-elements.repeat.addEventListener("click", () => {
+elements.discovery.addEventListener("click", () => {
   speakCurrentWord();
-  elements.repeat.hidden = true;
   window.clearTimeout(nextTimer);
   nextTimer = window.setTimeout(showBox, displayDuration);
 });
@@ -243,7 +290,16 @@ elements.soundToggle.addEventListener("click", () => {
   else if (currentWord) speakCurrentWord();
 });
 
+elements.voiceSelect.addEventListener("change", () => {
+  const voices = window.speechSynthesis.getVoices();
+  preferredVoice = voices.find((voice) => voice.voiceURI === elements.voiceSelect.value) ?? null;
+  if (currentWord) speakCurrentWord();
+});
+
 if ("speechSynthesis" in window) {
   selectSpeechVoice();
   window.speechSynthesis.addEventListener("voiceschanged", selectSpeechVoice);
+} else {
+  elements.voiceSelect.replaceChildren(new Option("Speech not supported", ""));
+  elements.voiceSelect.disabled = true;
 }

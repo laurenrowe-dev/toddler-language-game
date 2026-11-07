@@ -16,10 +16,18 @@
           <span class="brand-mark" aria-hidden="true">✦</span>
           <span>little words</span>
         </a>
-        <button class="sound-toggle" type="button" aria-pressed="true" aria-label="Turn sound off">
-          <span class="sound-icon" aria-hidden="true">🔊</span>
-          <span class="sound-label">Sound on</span>
-        </button>
+        <div class="topbar-controls">
+          <label class="voice-picker">
+            <span>Voice</span>
+            <select class="voice-select" aria-label="Choose a speech voice">
+              <option value="">Loading voices...</option>
+            </select>
+          </label>
+          <button class="sound-toggle" type="button" aria-pressed="true" aria-label="Turn sound off">
+            <span class="sound-icon" aria-hidden="true">🔊</span>
+            <span class="sound-label">Sound on</span>
+          </button>
+        </div>
       </header>
 
       <section class="game-card" aria-live="polite">
@@ -69,10 +77,6 @@
         </div>
 
         <div class="play-area">
-          <div class="sparkle sparkle-one" aria-hidden="true">✦</div>
-          <div class="sparkle sparkle-two" aria-hidden="true">✧</div>
-          <div class="sparkle sparkle-three" aria-hidden="true">✦</div>
-
           <button class="box-button" type="button" aria-label="Tap the box to discover a word">
             <span class="tap-hint">Tap the box!</span>
             <span class="gift" aria-hidden="true">
@@ -82,14 +86,11 @@
             </span>
           </button>
 
-          <div class="discovery" hidden>
-            <div class="object-picture" aria-hidden="true"></div>
-            <p class="word-label"></p>
-            <p class="sound-label-text"></p>
-            <button class="repeat-button" type="button" hidden>
-              <span aria-hidden="true">↻</span> Say it again
-            </button>
-          </div>
+          <button class="discovery" type="button" aria-label="Tap to hear the word again" hidden>
+            <span class="object-picture" aria-hidden="true"></span>
+            <span class="word-label"></span>
+            <span class="sound-label-text"></span>
+          </button>
 
           <div class="finish-screen" hidden>
             <span class="finish-star" aria-hidden="true">🌟</span>
