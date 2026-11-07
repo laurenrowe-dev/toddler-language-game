@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fff8e9">
+    <meta name="description" content="A playful, tap-to-learn word game for little learners.">
+    <title>Little Words — Tap, listen & learn!</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Little Words home">
+          <span class="brand-mark" aria-hidden="true">✦</span>
+          <span>little words</span>
+        </a>
+        <button class="sound-toggle" type="button" aria-pressed="true" aria-label="Turn sound off">
+          <span class="sound-icon" aria-hidden="true">🔊</span>
+          <span class="sound-label">Sound on</span>
+        </button>
+      </header>
+
+      <section class="game-card" aria-live="polite">
+        <div class="welcome-screen">
+          <span class="welcome-art" aria-hidden="true">🎁</span>
+          <span class="eyebrow">A little learning adventure</span>
+          <h1>Ready to discover?</h1>
+          <p>Let’s look, listen, and learn some new words together!</p>
+          <button class="start-button" type="button">Start a session <span aria-hidden="true">→</span></button>
+        </div>
+
+        <div class="category-screen" hidden>
+          <button class="back-button" type="button"><span aria-hidden="true">←</span> Back</button>
+          <span class="eyebrow">Pick your adventure</span>
+          <h1>What should we explore?</h1>
+          <p class="category-intro">Choose a category to start your 10-word session.</p>
+          <div class="category-grid">
+            <button class="category-button category-animals" type="button" data-category="animals">
+              <span aria-hidden="true">🐾</span><strong>Animals</strong>
+            </button>
+            <button class="category-button category-transport" type="button" data-category="transportation">
+              <span aria-hidden="true">🚂</span><strong>Transportation</strong>
+            </button>
+            <button class="category-button category-food" type="button" data-category="food">
+              <span aria-hidden="true">🍓</span><strong>Food</strong>
+            </button>
+            <button class="category-button category-everyday" type="button" data-category="everyday">
+              <span aria-hidden="true">🧸</span><strong>Everyday things</strong>
+            </button>
+            <button class="category-button category-surprise" type="button" data-category="all">
+              <span aria-hidden="true">🎉</span><strong>Surprise me!</strong>
+            </button>
+          </div>
+        </div>
+
+        <div class="game-session" hidden>
+        <div class="game-heading">
+          <span class="eyebrow">A little learning adventure</span>
+          <div class="progress-row">
+            <p class="progress-label"><span class="selected-category"></span></p>
+            <button class="change-category-button" type="button">Change category</button>
+            <p class="progress-count"><span id="round-number">1</span> <span class="count-divider">/</span> 10</p>
+          </div>
+          <div class="progress-track" role="progressbar" aria-label="Words explored" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
+            <span class="progress-fill"></span>
+          </div>
+        </div>
+
+        <div class="play-area">
+          <div class="sparkle sparkle-one" aria-hidden="true">✦</div>
+          <div class="sparkle sparkle-two" aria-hidden="true">✧</div>
+          <div class="sparkle sparkle-three" aria-hidden="true">✦</div>
+
+          <button class="box-button" type="button" aria-label="Tap the box to discover a word">
+            <span class="tap-hint">Tap the box!</span>
+            <span class="gift" aria-hidden="true">
+              <span class="gift-bow"></span>
+              <span class="gift-lid"></span>
+              <span class="gift-body"></span>
+            </span>
+          </button>
+
+          <div class="discovery" hidden>
+            <div class="object-picture" aria-hidden="true"></div>
+            <p class="word-label"></p>
+            <p class="sound-label-text"></p>
+            <button class="repeat-button" type="button" hidden>
+              <span aria-hidden="true">↻</span> Say it again
+            </button>
+          </div>
+
+          <div class="finish-screen" hidden>
+            <span class="finish-star" aria-hidden="true">🌟</span>
+            <h1>Wonderful learning!</h1>
+            <p>You explored all 10 words. Ready for another round?</p>
+            <button class="again-button" type="button">Play again <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+
+        <p class="helper-text">Listen, look, and say it together!</p>
+        </div>
+      </section>
+
+      <footer class="footer-note">
+        <span aria-hidden="true">♥</span> Made for little learners and the grown-ups who cheer them on
+      </footer>
+    </main>
+  </body>
+</html>
