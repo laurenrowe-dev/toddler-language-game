@@ -3,13 +3,13 @@ const words = [
   { word: "dog", picture: "🐶", sound: "Woof, woof!", category: "animals" },
   { word: "duck", picture: "🦆", sound: "Quack, quack!", category: "animals" },
   { word: "cow", picture: "🐮", sound: "Moo, moo!", category: "animals" },
-  { word: "sheep", picture: "🐑", sound: "Baa, baa!", category: "animals" },
+  { word: "sheep", picture: "🐑", sound: "Bah, bah!", category: "animals" },
   { word: "bird", picture: "🐦", sound: "Tweet, tweet!", category: "animals" },
   { word: "frog", picture: "🐸", sound: "Ribbit, ribbit!", category: "animals" },
   { word: "car", picture: "🚗", sound: "Vroom, vroom!", category: "transportation" },
   { word: "ball", picture: "⚽", sound: "Bounce, bounce!", category: "everyday" },
   { word: "apple", picture: "🍎", sound: "Crunch, crunch!", category: "food" },
-  { word: "banana", picture: "🍌", sound: "Peel and munch!", category: "food" },
+  { word: "banana", picture: "🍌", sound: "Peel it!", category: "food" },
   { word: "sun", picture: "☀️", sound: "Shine, shine!", category: "everyday" },
   { word: "train", picture: "🚂", sound: "Choo-choo!", category: "transportation" },
   { word: "boat", picture: "⛵", sound: "Swish, swish!", category: "transportation" },
@@ -18,11 +18,11 @@ const words = [
   { word: "horse", picture: "🐴", sound: "Neigh, neigh!", category: "animals" },
   { word: "pig", picture: "🐷", sound: "Oink, oink!", category: "animals" },
   { word: "rabbit", picture: "🐰", sound: "Hop, hop!", category: "animals" },
-  { word: "bear", picture: "🐻", sound: "Grr, grr!", category: "animals" },
+  { word: "bear", picture: "🐻", sound: "Growl, growl!", category: "animals" },
   { word: "turtle", picture: "🐢", sound: "Slow and steady!", category: "animals" },
   { word: "bee", picture: "🐝", sound: "Buzz, buzz!", category: "animals" },
   { word: "chicken", picture: "🐔", sound: "Cluck, cluck!", category: "animals" },
-  { word: "monkey", picture: "🐵", sound: "Ooh, ooh, ah, ah!", category: "animals" },
+  { word: "monkey", picture: "🐵", sound: "Oo, oo, ah, ah!", category: "animals" },
   { word: "book", picture: "📘", sound: "Flip, flip!", category: "everyday" },
   { word: "cup", picture: "🥤", sound: "Sip, sip!", category: "everyday" },
   { word: "shoe", picture: "👟", sound: "Stomp, stomp!", category: "everyday" },
@@ -39,14 +39,14 @@ const words = [
   { word: "helicopter", picture: "🚁", sound: "Whir, whir!", category: "transportation" },
   { word: "scooter", picture: "🛴", sound: "Roll, roll!", category: "transportation" },
   { word: "taxi", picture: "🚕", sound: "Beep, beep!", category: "transportation" },
-  { word: "orange", picture: "🍊", sound: "Peel and eat!", category: "food" },
+  { word: "orange", picture: "🍊", sound: "Yum, yum!", category: "food" },
   { word: "bread", picture: "🍞", sound: "Crunch, crunch!", category: "food" },
   { word: "cheese", picture: "🧀", sound: "Yum, yum!", category: "food" },
   { word: "egg", picture: "🥚", sound: "Tap, tap!", category: "food" },
   { word: "carrot", picture: "🥕", sound: "Crunch, crunch!", category: "food" },
   { word: "strawberry", picture: "🍓", sound: "Sweet, sweet!", category: "food" },
   { word: "cookie", picture: "🍪", sound: "Munch, munch!", category: "food" },
-  { word: "milk", picture: "🥛", sound: "Glug, glug!", category: "food" }
+  { word: "milk", picture: "🥛", sound: "Gulp, gulp!", category: "food" }
 ];
 
 const categoryNames = {
@@ -65,7 +65,9 @@ const giftPalettes = [
 ];
 const sessionSize = 10;
 const displayDuration = 9000;
+const nextButtonDelay = 3000;
 const elements = {
+  brand: document.querySelector(".brand"),
   welcome: document.querySelector(".welcome-screen"),
   start: document.querySelector(".start-button"),
   categories: document.querySelector(".category-screen"),
@@ -76,6 +78,7 @@ const elements = {
   selectedCategory: document.querySelector(".selected-category"),
   box: document.querySelector(".box-button"),
   discovery: document.querySelector(".discovery"),
+  next: document.querySelector(".next-button"),
   picture: document.querySelector(".object-picture"),
   word: document.querySelector(".word-label"),
   sound: document.querySelector(".sound-label-text"),
@@ -98,8 +101,8 @@ let soundEnabled = true;
 let selectedCategory = "all";
 let preferredVoice = null;
 let lastGiftPalette = -1;
-let nextTimer;
 let revealTimer;
+let nextButtonTimer;
 
 function setGiftPalette() {
   let paletteIndex = Math.floor(Math.random() * giftPalettes.length);
@@ -184,13 +187,14 @@ function updateProgress() {
 
 function showBox() {
   cancelRevealAnimation();
-  window.clearTimeout(nextTimer);
+  window.clearTimeout(nextButtonTimer);
   if (currentWord) completedWords += 1;
   currentWord = null;
 
   if (completedWords >= sessionSize) {
     elements.box.hidden = true;
     elements.discovery.hidden = true;
+    elements.next.hidden = true;
     elements.finish.hidden = false;
     elements.helper.hidden = true;
     elements.progress.setAttribute("aria-valuenow", String(sessionSize));
@@ -199,6 +203,7 @@ function showBox() {
   }
 
   elements.discovery.hidden = true;
+  elements.next.hidden = true;
   setGiftPalette();
   elements.box.hidden = false;
   elements.helper.textContent = "Listen, look, and say it together!";
@@ -216,20 +221,27 @@ function revealWord() {
     cancelRevealAnimation();
     elements.box.hidden = true;
     elements.discovery.hidden = false;
+    elements.next.hidden = true;
     elements.picture.textContent = currentWord.picture;
     elements.word.textContent = currentWord.word;
     elements.sound.textContent = currentWord.sound;
     elements.discovery.setAttribute("aria-label", `Tap to hear ${currentWord.word} again`);
-    elements.helper.textContent = "Tap the picture area to hear it again!";
+    elements.helper.textContent = "Take a moment to say the word together.";
     elements.helper.hidden = false;
     speakCurrentWord();
-
-    nextTimer = window.setTimeout(showBox, displayDuration);
+    nextButtonTimer = window.setTimeout(() => {
+      if (currentWord && !elements.discovery.hidden) {
+        elements.next.hidden = false;
+        elements.helper.textContent = "Tap the picture to hear it again, or press Next!";
+      }
+    }, nextButtonDelay);
   }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 600);
 }
 
 function showCategories() {
   cancelRevealAnimation();
+  window.clearTimeout(nextButtonTimer);
+  elements.next.hidden = true;
   elements.welcome.hidden = true;
   elements.gameSession.hidden = true;
   elements.categories.hidden = false;
@@ -237,9 +249,10 @@ function showCategories() {
 
 function showWelcome() {
   cancelRevealAnimation();
-  window.clearTimeout(nextTimer);
+  window.clearTimeout(nextButtonTimer);
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   currentWord = null;
+  elements.next.hidden = true;
   elements.categories.hidden = true;
   elements.gameSession.hidden = true;
   elements.welcome.hidden = false;
@@ -247,7 +260,7 @@ function showWelcome() {
 
 function startSession(category) {
   cancelRevealAnimation();
-  window.clearTimeout(nextTimer);
+  window.clearTimeout(nextButtonTimer);
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   selectedCategory = category;
   const categoryWords = category === "all" ? words : words.filter((word) => word.category === category);
@@ -260,6 +273,7 @@ function startSession(category) {
   elements.selectedCategory.textContent = categoryNames[category];
   elements.finish.hidden = true;
   elements.discovery.hidden = true;
+  elements.next.hidden = true;
   setGiftPalette();
   elements.box.hidden = false;
   elements.helper.textContent = "Listen, look, and say it together!";
@@ -268,6 +282,10 @@ function startSession(category) {
 }
 
 elements.start.addEventListener("click", showCategories);
+elements.brand.addEventListener("click", (event) => {
+  event.preventDefault();
+  showWelcome();
+});
 elements.back.addEventListener("click", showWelcome);
 elements.changeCategory.addEventListener("click", showCategories);
 elements.categoryButtons.forEach((button) => {
@@ -276,8 +294,9 @@ elements.categoryButtons.forEach((button) => {
 elements.box.addEventListener("click", revealWord);
 elements.discovery.addEventListener("click", () => {
   speakCurrentWord();
-  window.clearTimeout(nextTimer);
-  nextTimer = window.setTimeout(showBox, displayDuration);
+});
+elements.next.addEventListener("click", () => {
+  if (currentWord) showBox();
 });
 elements.again.addEventListener("click", () => startSession(selectedCategory));
 elements.soundToggle.addEventListener("click", () => {
