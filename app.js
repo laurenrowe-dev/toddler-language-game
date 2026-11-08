@@ -196,6 +196,7 @@ function showBox() {
     elements.discovery.hidden = true;
     elements.next.hidden = true;
     elements.finish.hidden = false;
+    elements.again.focus();
     elements.helper.hidden = true;
     elements.progress.setAttribute("aria-valuenow", String(sessionSize));
     elements.progressFill.style.width = "100%";
@@ -209,6 +210,7 @@ function showBox() {
   elements.helper.textContent = "Listen, look, and say it together!";
   elements.helper.hidden = false;
   updateProgress();
+  elements.box.focus();
 }
 
 function revealWord() {
@@ -228,6 +230,7 @@ function revealWord() {
     elements.discovery.setAttribute("aria-label", `Tap to hear ${currentWord.word} again`);
     elements.helper.textContent = "Take a moment to say the word together.";
     elements.helper.hidden = false;
+    elements.discovery.focus();
     speakCurrentWord();
     nextButtonTimer = window.setTimeout(() => {
       if (currentWord && !elements.discovery.hidden) {
@@ -245,6 +248,7 @@ function showCategories() {
   elements.welcome.hidden = true;
   elements.gameSession.hidden = true;
   elements.categories.hidden = false;
+  elements.back.focus();
 }
 
 function showWelcome() {
@@ -256,6 +260,7 @@ function showWelcome() {
   elements.categories.hidden = true;
   elements.gameSession.hidden = true;
   elements.welcome.hidden = false;
+  elements.start.focus();
 }
 
 function startSession(category) {
@@ -279,6 +284,7 @@ function startSession(category) {
   elements.helper.textContent = "Listen, look, and say it together!";
   elements.helper.hidden = false;
   updateProgress();
+  elements.box.focus();
 }
 
 elements.start.addEventListener("click", showCategories);
